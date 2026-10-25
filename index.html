@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0d0f10">
+  <title>Welcome · Athlo</title>
+  <link rel="icon" href="img/athlo-mark.png">
+  <link rel="apple-touch-icon" href="img/athlo-logo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main>
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Welcome!</div>
+      <h1 id="hello">Welcome</h1>
+      <p class="lead">Training program, weekly check-ins and meal plan in one place. Move. Grow. Achieve.</p>
+    </div>
+    <img src="img/athlo-mark.png" alt="Athlo logo">
+  </div>
+
+  <section>
+    <div class="section-links" id="sections"></div>
+  </section>
+
+  <section>
+    <div class="grid grid-2">
+      <div class="card today" id="today"></div>
+      <div class="card today" id="progress"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title"><h2>This week</h2><a class="btn small ghost" href="training-program.html">Training Program</a></div>
+    <div class="week-strip" id="week"></div>
+  </section>
+
+  <section>
+    <div class="card">
+      <h2>Backup</h2>
+      <p class="muted" style="margin:6px 0 14px">Check-ins, completed exercises and meal edits are saved in this browser only. Download a backup to keep it safe or move it to another phone or computer.</p>
+      <div class="btn-row">
+        <button class="btn primary" id="export" type="button">Download backup</button>
+        <label class="btn" for="import">Restore backup</label>
+        <input id="import" type="file" accept="application/json,.json" class="visually-hidden">
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/checkin-core.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const A = App, D = A.D, c = D.client;
+
+  if (c.name) document.getElementById("hello").textContent = "Welcome, " + c.name;
+
+  const sections = [
+    ["data-collection.html", "Data Collection", `${c.age} years · ${c.experience} · Goal: ${c.goal}`],
+    ["check-in.html", "Check IN", `Daily weigh-ins for ${D.weeks} weeks with weekly averages`],
+    ["training-program.html", "Training Program", `${D.sessions.length} sessions a week with videos`],
+    ["nutrition.html", "Nutrition", `${D.meals.length}-meal daily plan`]
+  ];
+  document.getElementById("sections").innerHTML = sections.map(([h, t, d], i) =>
+    `<a class="card" href="${h}"><span class="n">0${i + 1}</span><h3>${t}</h3><p class="muted" style="font-size:.9rem">${A.esc(d)}</p></a>`
+  ).join("");
+
+  // Today
+  const ti = A.todayIndex();
+  const s = D.schedule[ti];
+  const sess = s.day ? D.sessions.find(x => x.id === s.day) : null;
+  document.getElementById("today").innerHTML = sess
+    ? `<span class="pill teal">Today · ${s.weekday}</span>
+       <div class="big">${A.esc(sess.title)}</div>
+       <p class="muted">${sess.exercises.length} exercises · ${sess.exercises.reduce((a, e) => a + e.sets, 0)} working sets</p>
+       <div><a class="btn primary" href="training-program.html#${sess.id}">Start workout</a></div>`
+    : `<span class="pill">Today · ${s.weekday}</span>
+       <div class="big">Rest day</div>
+       <p class="muted">Recover, walk, eat well. Next session: ${(() => {
+         for (let k = 1; k <= 7; k++) { const n = D.schedule[(ti + k) % 7]; if (n.day) return n.weekday + " – " + n.label; }
+         return "";
+       })()}</p>
+       <div><a class="btn" href="check-in.html">Log today's weight</a></div>`;
+
+  // Progress
+  const sum = Checkin.summary(Checkin.data());
+  const prog = document.getElementById("progress");
+  if (!sum.weeksLogged) {
+    prog.innerHTML = `<span class="pill">Check-ins</span>
+      <div class="big">No weigh-ins yet</div>
+      <p class="muted">Log a daily weight and the weekly average and trend appear here.</p>
+      <div><a class="btn" href="check-in.html">Open check-in</a></div>`;
+  } else {
+    const ch = sum.change;
+    prog.innerHTML = `<span class="pill">Check-ins · ${sum.weeksLogged} week${sum.weeksLogged > 1 ? "s" : ""} logged</span>
+      <div class="big">${A.fmtKg(sum.last.avg)}</div>
+      <p class="muted">Week ${sum.last.week} average${ch != null ? ` · ${ch > 0 ? "+" : ""}${ch.toFixed(1)} kg since week ${sum.first.week}` : ""}</p>
+      <div><a class="btn" href="check-in.html">Open check-in</a></div>`;
+  }
+
+  // Week strip
+  document.getElementById("week").innerHTML = D.schedule.map((d, i) =>
+    `<a class="d ${d.day ? "train" : "rest"}${i === ti ? " is-today" : ""}" href="${d.day ? "training-program.html#" + d.day : "training-program.html"}">
+       <div class="wd">${d.weekday.slice(0, 3)}</div><div class="lb">${A.esc(d.label)}</div></a>`
+  ).join("");
+
+  document.getElementById("export").onclick = A.exportBackup;
+  document.getElementById("import").onchange = e => {
+    if (e.target.files[0]) A.importBackup(e.target.files[0], () => location.reload());
+    e.target.value = "";
+  };
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0d0f10">
+  <title>Nutrition · Athlo</title>
+  <link rel="icon" href="img/athlo-mark.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main>
+  <div class="page-head">
+    <div>
+      <h1>Nutrition</h1>
+      <p class="muted">Daily meal plan · 5 meals. Tap Edit to add or change foods, one per line.</p>
+    </div>
+    <button class="btn small ghost" id="reset" type="button">Reset to coach's plan</button>
+  </div>
+  <div class="grid grid-2" id="meals"></div>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const A = App, D = A.D;
+  const meals = () => A.get("meals", null) || D.meals.map(m => m.foods);
+  let editing = null;
+
+  function render() {
+    const m = meals();
+    document.getElementById("meals").innerHTML = D.meals.map((meal, i) => {
+      const foods = (m[i] || "").split("\n").map(s => s.trim()).filter(Boolean);
+      return `<div class="card meal">
+        <div class="meal-head">
+          <div><h3>${meal.title}</h3>${meal.tag ? `<span class="pill teal" style="margin-top:6px">${meal.tag}</span>` : ""}</div>
+          <button class="btn small" data-edit="${i}" type="button">${editing === i ? "Save" : "Edit"}</button>
+        </div>
+        ${editing === i
+          ? `<textarea id="ta-${i}" aria-label="${meal.title} foods" placeholder="e.g. 100 g oats">${A.esc(m[i] || "")}</textarea>`
+          : foods.length ? `<ul>${foods.map(f => `<li>${A.esc(f)}</li>`).join("")}</ul>` : `<p class="empty">Not set yet</p>`}
+      </div>`;
+    }).join("");
+    if (editing !== null) { const ta = document.getElementById("ta-" + editing); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  }
+
+  document.getElementById("meals").addEventListener("click", e => {
+    const b = e.target.closest("[data-edit]"); if (!b) return;
+    const i = +b.dataset.edit;
+    if (editing === i) {
+      const m = meals(); m[i] = document.getElementById("ta-" + i).value.trim();
+      A.set("meals", m); editing = null; A.toast("Meal saved");
+    } else {
+      if (editing !== null) { const m = meals(); m[editing] = document.getElementById("ta-" + editing).value.trim(); A.set("meals", m); }
+      editing = i;
+    }
+    render();
+  });
+
+  document.getElementById("reset").onclick = () => {
+    if (!confirm("Replace your edits with the coach's original meal plan?")) return;
+    const s = A.load(); delete s.meals; A.save(s); editing = null; render(); A.toast("Meal plan reset");
+  };
+
+  render();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0d0f10">
+  <title>Data Collection · Athlo</title>
+  <link rel="icon" href="img/athlo-mark.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main>
+  <div class="page-head">
+    <div>
+      <h1>Data Collection</h1>
+      <p class="muted">Client details the program is built on.</p>
+    </div>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <dl class="data-list" id="list"></dl>
+  </div>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const A = App, c = A.D.client;
+  const rows = [
+    ...(c.name ? [["Name", c.name]] : []), ["Age", c.age], ["Injuries", c.injuries],
+    ["Experience", c.experience], ["Goal", c.goal]
+  ];
+  document.getElementById("list").innerHTML = rows.map(([k, v]) =>
+    `<div><dt>${k}</dt><dd${v === "" || v == null ? ' class="empty"' : ""}>${v === "" || v == null ? "None noted" : A.esc(v)}</dd></div>`
+  ).join("");
+});
+</script>
+</body>
+</html>

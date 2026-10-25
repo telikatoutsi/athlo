@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0d0f10">
+  <title>Training Program · Athlo</title>
+  <link rel="icon" href="img/athlo-mark.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main>
+  <div class="page-head">
+    <div>
+      <h1>Training Program</h1>
+      <p class="muted">4 sessions a week. Tick off each exercise and note the weight used for each set.</p>
+    </div>
+  </div>
+
+  <section>
+    <div class="card">
+      <div class="section-title"><h2>Week / Day</h2></div>
+      <table class="schedule-table" id="schedule"></table>
+    </div>
+  </section>
+
+  <section>
+    <nav class="day-tabs jump" id="jump" aria-label="Jump to day"></nav>
+    <div id="days"></div>
+  </section>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const A = App, D = A.D;
+  const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>';
+  const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  const prog = () => A.get("program", { done: {}, loads: {} });
+  const ti = A.todayIndex();
+
+  // Weekly schedule (top table on the sheet)
+  document.getElementById("schedule").innerHTML =
+    `<thead><tr>${D.schedule.map(d => `<th>${d.weekday}</th>`).join("")}</tr></thead>
+     <tbody><tr>${D.schedule.map((d, i) =>
+       `<td data-day="${d.weekday}" class="${d.day ? "" : "rest"}${i === ti ? " is-today" : ""}">${d.day ? `<a href="#${d.day}">${A.esc(d.label)}</a>` : "Off"}</td>`
+     ).join("")}</tr></tbody>`;
+
+  document.getElementById("jump").innerHTML = D.sessions.map(s =>
+    `<a href="#${s.id}" class="btn small" style="border-radius:999px">Day ${s.number} · ${A.esc(s.title)}</a>`
+  ).join("");
+
+  function block(s, p) {
+    const doneCount = s.exercises.filter((_, i) => p.done[s.id + "-" + i]).length;
+    return `<div class="day-block" id="${s.id}">
+      <div class="session-head">
+        <div>
+          <h2>Day ${s.number}: ${A.esc(s.title)}</h2>
+          <p class="muted" style="margin-top:4px">${s.weekday} · ${s.exercises.length} exercises · <span data-count="${s.id}">${doneCount}/${s.exercises.length} done</span></p>
+        </div>
+        <button class="btn small ghost" data-reset="${s.id}" type="button">Clear ticks</button>
+      </div>
+      <ol class="ex-list">
+        ${s.exercises.map((e, i) => {
+          const k = s.id + "-" + i, done = !!p.done[k], loads = p.loads[k] || [];
+          return `<li class="ex${done ? " done" : ""}">
+            <div>
+              <div class="name">${A.esc(e.name)}</div>
+              <div class="meta"><span class="pill teal">${e.sets} sets</span><span class="pill">${A.esc(e.reps)} reps</span></div>
+              ${e.note ? `<div class="note">${A.esc(e.note)}</div>` : ""}
+            </div>
+            <div class="actions">
+              ${e.video ? `<a class="icon-btn" href="${A.esc(e.video)}" target="_blank" rel="noopener" aria-label="Watch ${A.esc(e.name)} video">${ICON_PLAY}</a>` : ""}
+              <button class="icon-btn${done ? " on" : ""}" data-done="${k}" type="button" aria-pressed="${done}" aria-label="Mark ${A.esc(e.name)} done">${ICON_CHECK}</button>
+            </div>
+            <div class="loads">
+              ${Array.from({ length: e.sets }, (_, j) =>
+                `<input inputmode="decimal" placeholder="Set ${j + 1} kg" aria-label="${A.esc(e.name)} set ${j + 1} weight" data-load="${k}" data-set="${j}" value="${A.esc(loads[j] || "")}">`
+              ).join("")}
+            </div>
+          </li>`;
+        }).join("")}
+      </ol>
+    </div>`;
+  }
+
+  function render() {
+    const p = prog();
+    document.getElementById("days").innerHTML = D.sessions.map(s => block(s, p)).join("");
+  }
+
+  const root = document.getElementById("days");
+  root.addEventListener("click", e => {
+    const b = e.target.closest("[data-done]");
+    if (b) {
+      const p = prog(), k = b.dataset.done;
+      p.done[k] = !p.done[k]; A.set("program", p);
+      const li = b.closest(".ex");
+      li.classList.toggle("done", p.done[k]);
+      b.classList.toggle("on", p.done[k]); b.setAttribute("aria-pressed", p.done[k]);
+      const sid = k.split("-")[0], s = D.sessions.find(x => x.id === sid);
+      root.querySelector(`[data-count="${sid}"]`).textContent =
+        s.exercises.filter((_, i) => p.done[sid + "-" + i]).length + "/" + s.exercises.length + " done";
+    }
+    const r = e.target.closest("[data-reset]");
+    if (r) {
+      const p = prog(), sid = r.dataset.reset;
+      Object.keys(p.done).forEach(k => { if (k.startsWith(sid + "-")) delete p.done[k]; });
+      A.set("program", p); render(); A.toast("Ticks cleared");
+      document.getElementById(sid).scrollIntoView();
+    }
+  });
+  root.addEventListener("change", e => {
+    const inp = e.target.closest("[data-load]"); if (!inp) return;
+    const p = prog(), k = inp.dataset.load;
+    p.loads[k] = p.loads[k] || [];
+    p.loads[k][+inp.dataset.set] = inp.value.trim();
+    A.set("program", p); A.toast("Saved");
+  });
+
+  render();
+  if (location.hash) { const t = document.querySelector(location.hash); if (t) setTimeout(() => t.scrollIntoView(), 50); }
+});
+</script>
+</body>
+</html>

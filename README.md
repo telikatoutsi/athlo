@@ -3,8 +3,8 @@
 Private client coaching tool, built from the coach's Google Sheet.
 
 ## Pages
-- **Home** (`index.html`) – client profile, today's session, weight trend, weekly schedule, backup/restore
-- **Program** (`program.html`) – the 4-day split (Pull + Deadlifts, Push, Lower body, Upper body) with sets, reps, notes and demo videos; tick off exercises and log the weight used per set
+- **Welcome** (`index.html`) – client profile, today's session, weight trend, weekly schedule, backup/restore
+- **Training Program** (`training-program.html`) – the 4-day split (Pull + Deadlifts, Push, Lower body, Upper body) with sets, reps, notes and demo videos; tick off exercises and log the weight used per set
 - **Check-in** (`check-in.html`) – 17 weeks of daily weigh-ins with automatic weekly averages, a trend chart and CSV export
 - **Nutrition** (`nutrition.html`) – 5-meal daily plan, editable
 

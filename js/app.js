@@ -99,6 +99,11 @@
       </div>`;
     document.body.prepend(header);
 
+    // Sticky elements below the header need its real height, which changes with the nav
+    const syncHeader = () => document.documentElement.style.setProperty("--header-h", header.offsetHeight + "px");
+    syncHeader();
+    window.addEventListener("resize", syncHeader);
+
     const tabbar = document.createElement("nav");
     tabbar.className = "tabbar";
     tabbar.setAttribute("aria-label", "Main");

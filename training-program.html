@@ -9,7 +9,7 @@
   <link rel="icon" href="img/athlo-mark.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Weekly schedule (top table on the sheet)
   document.getElementById("schedule").innerHTML =
-    `<thead><tr>${D.schedule.map(d => `<th>${d.weekday}</th>`).join("")}</tr></thead>
+    `<thead><tr>${D.schedule.map(d => `<th><span class="long">${d.weekday}</span><span class="short">${d.weekday.slice(0, 3)}</span></th>`).join("")}</tr></thead>
      <tbody><tr>${D.schedule.map((d, i) =>
        `<td data-day="${d.weekday}" class="${d.day ? "" : "rest"}${i === ti ? " is-today" : ""}">${d.day ? `<a href="#${d.day}">${A.esc(d.label)}</a>` : "Off"}</td>`
      ).join("")}</tr></tbody>`;

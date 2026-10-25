@@ -9,7 +9,7 @@
   <link rel="icon" href="img/athlo-mark.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -100,14 +100,14 @@ document.addEventListener("DOMContentLoaded", () => {
     let grid = "";
     for (let i = 0; i <= 4; i++) {
       const v = min + (max - min) * i / 4, yy = y(v).toFixed(1);
-      grid += `<line x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}" stroke="#2a2f33"/><text x="${L - 8}" y="${+yy + 4}" text-anchor="end" fill="#98a2a8" font-size="11">${v.toFixed(1)}</text>`;
+      grid += `<line x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}" stroke="#2b2b29"/><text x="${L - 8}" y="${+yy + 4}" text-anchor="end" fill="#9c9a93" font-size="11">${v.toFixed(1)}</text>`;
     }
     let xl = "";
-    for (let w = 1; w <= D.weeks; w += (wide ? 2 : 4)) xl += `<text x="${x(w).toFixed(1)}" y="${H - 8}" text-anchor="middle" fill="#98a2a8" font-size="11">W${w}</text>`;
+    for (let w = 1; w <= D.weeks; w += (wide ? 2 : 4)) xl += `<text x="${x(w).toFixed(1)}" y="${H - 8}" text-anchor="middle" fill="#9c9a93" font-size="11">W${w}</text>`;
     const path = pts.map((p, i) => (i ? "L" : "M") + x(p.week).toFixed(1) + " " + y(p.avg).toFixed(1)).join(" ");
-    const dots = pts.map(p => `<circle cx="${x(p.week).toFixed(1)}" cy="${y(p.avg).toFixed(1)}" r="4.5" fill="#35b6cc" stroke="#16191b" stroke-width="2"><title>Week ${p.week}: ${p.avg.toFixed(1)} kg</title></circle>`).join("");
+    const dots = pts.map(p => `<circle cx="${x(p.week).toFixed(1)}" cy="${y(p.avg).toFixed(1)}" r="4.5" fill="#3cb4c6" stroke="#1a1a19" stroke-width="2"><title>Week ${p.week}: ${p.avg.toFixed(1)} kg</title></circle>`).join("");
     el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Weekly average weight">${grid}${xl}
-      <path d="${path}" fill="none" stroke="#35b6cc" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${dots}</svg>`;
+      <path d="${path}" fill="none" stroke="#3cb4c6" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${dots}</svg>`;
   }
 
   function weekSummary(w) {
@@ -176,6 +176,13 @@ document.addEventListener("DOMContentLoaded", () => {
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
     a.download = "check-ins.csv"; document.body.appendChild(a); a.click(); a.remove();
   };
+
+  // Redraw the chart when its width crosses the wide/narrow breakpoint (rotation, window resize)
+  let wasWide = document.getElementById("chart").clientWidth > 600;
+  window.addEventListener("resize", () => {
+    const wide = document.getElementById("chart").clientWidth > 600;
+    if (wide !== wasWide) { wasWide = wide; renderChart(); }
+  });
 
   renderStats(); renderChart(); renderWeeks();
 });
